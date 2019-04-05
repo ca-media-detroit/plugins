@@ -13,6 +13,10 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Map;
 
 class FlutterCookieManager implements MethodCallHandler {
@@ -62,14 +66,13 @@ class FlutterCookieManager implements MethodCallHandler {
 
   private static void addCookie(final MethodCall methodCall, final Result result) {
     final String domain = methodCall.argument("domain");
-    final Map<String, String> cookie = methodCall.argument("cookie");
+    final String name = methodCall.argument("name");
+    final String value = methodCall.argument("value");
+    final String path = methodCall.argument("path");
 
     CookieManager cookieManager = CookieManager.getInstance();
-    for (Map.Entry<String, String> entry: cookie.entrySet()) {
-      final String cookieString = entry.getKey() + "=" + entry.getValue() + ";";
-      cookieManager.setCookie(domain, cookieString);
-    }
-
+    final String cookieString = name + "=" + value + "; path=" + path + ";";
+    cookieManager.setCookie(domain, cookieString);
     result.success(null);
   }
 }

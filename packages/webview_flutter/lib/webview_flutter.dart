@@ -666,11 +666,26 @@ class CookieManager {
       .invokeMethod('clearCookies')
       .then<bool>((dynamic result) => result);
 
-  Future<void> addCookie(String domain, Map<String, String> cookie) =>
-      _channel.invokeMethod(
-        'addCookie',
-        <String, dynamic>{'domain': domain, 'cookie': cookie},
-      );
+  /// Adds a cookie.
+  ///
+  /// This is supported for >= IOS 11.
+  Future<void> addCookie({
+    @required String domain,
+    @required String name,
+    @required String value,
+    String path = '/',
+  }) {
+    assert(domain != null && name != null && value != null);
+    return _channel.invokeMethod(
+      'addCookie',
+      <String, dynamic>{
+        'domain': domain,
+        'name': name,
+        'value': value,
+        'path': path,
+      },
+    );
+  }
 }
 
 // Throws an ArgumentError if `url` is not a valid URL string.
