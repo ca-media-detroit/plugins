@@ -109,48 +109,48 @@ class FlutterWebViewClient {
   }
 
   private WebViewClient internalCreateWebViewClient() {
-      return new WebViewClient() {
-          @Override
-          public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
-              FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
-          }
+    return new WebViewClient() {
+      @Override
+      public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+          FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
+      }
 
-          @TargetApi(Build.VERSION_CODES.N)
-          @Override
-          public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-              return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
-          }
+      @TargetApi(Build.VERSION_CODES.N)
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+          return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
+      }
 
-          @Override
-          public void onPageFinished(WebView view, String url) {
-              FlutterWebViewClient.this.onPageFinished(view, url);
-          }
-      };
+      @Override
+      public void onPageFinished(WebView view, String url) {
+          FlutterWebViewClient.this.onPageFinished(view, url);
+      }
+    };
   }
 
   private WebViewClientCompat internalCreateWebViewClientCompat() {
-      return new WebViewClientCompat() {
-          @Override
-          public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
-              FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
-          }
+    return new WebViewClientCompat() {
+      @Override
+      public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+          FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
+      }
 
-          @Override
-          public boolean shouldOverrideUrlLoading(
-                  @NonNull WebView view, @NonNull WebResourceRequest request) {
-              return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
-          }
+      @Override
+      public boolean shouldOverrideUrlLoading(
+              @NonNull WebView view, @NonNull WebResourceRequest request) {
+          return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
+      }
 
-          @Override
-          public boolean shouldOverrideUrlLoading(WebView view, String url) {
-              return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, url);
-          }
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+          return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, url);
+      }
 
-          @Override
-          public void onPageFinished(WebView view, String url) {
-              FlutterWebViewClient.this.onPageFinished(view, url);
-          }
-      };
+      @Override
+      public void onPageFinished(WebView view, String url) {
+          FlutterWebViewClient.this.onPageFinished(view, url);
+      }
+    };
   }
 
   private static class OnNavigationRequestResult implements MethodChannel.Result {
