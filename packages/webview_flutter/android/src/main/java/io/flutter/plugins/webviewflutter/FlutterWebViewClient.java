@@ -15,6 +15,7 @@ import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.webkit.WebViewClientCompat;
 import io.flutter.plugin.common.MethodChannel;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import java.util.Map;
 class FlutterWebViewClient {
   private static final String TAG = "FlutterWebViewClient";
   private final MethodChannel methodChannel;
-  private final  Map<String, Object> params;
+  private final Map<String, Object> params;
   private boolean hasNavigationDelegate;
 
   FlutterWebViewClient(MethodChannel methodChannel, Map<String, Object> params) {
@@ -35,9 +36,9 @@ class FlutterWebViewClient {
 
   private void onReceivedHttpAuthRequest(
           WebView view, HttpAuthHandler handler, String host, String realm) {
-      if (params.containsKey("username") && params.containsKey("password")) {
-          handler.proceed((String) params.get("username"), (String) params.get("password"));
-      }
+    if (params.containsKey("username") && params.containsKey("password")) {
+      handler.proceed((String) params.get("username"), (String) params.get("password"));
+    }
   }
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -46,7 +47,7 @@ class FlutterWebViewClient {
       return false;
     }
     notifyOnNavigationRequest(
-        request.getUrl().toString(), request.getRequestHeaders(), view, request.isForMainFrame());
+            request.getUrl().toString(), request.getRequestHeaders(), view, request.isForMainFrame());
     // We must make a synchronous decision here whether to allow the navigation or not,
     // if the Dart code has set a navigation delegate we want that delegate to decide whether
     // to navigate or not, and as we cannot get a response from the Dart delegate synchronously we
@@ -71,8 +72,8 @@ class FlutterWebViewClient {
     // We proceed assuming that the navigation is targeted to the main frame. If the page had any
     // frames they will be loaded in the main frame instead.
     Log.w(
-        TAG,
-        "Using a navigationDelegate with an old webview implementation, pages with frames or iframes will not work");
+            TAG,
+            "Using a navigationDelegate with an old webview implementation, pages with frames or iframes will not work");
     notifyOnNavigationRequest(url, null, view, true);
     return true;
   }
@@ -84,76 +85,75 @@ class FlutterWebViewClient {
   }
 
   private void notifyOnNavigationRequest(
-      String url, Map<String, String> headers, WebView webview, boolean isMainFrame) {
+          String url, Map<String, String> headers, WebView webview, boolean isMainFrame) {
     HashMap<String, Object> args = new HashMap<>();
     args.put("url", url);
     args.put("isForMainFrame", isMainFrame);
     if (isMainFrame) {
       methodChannel.invokeMethod(
-          "navigationRequest", args, new OnNavigationRequestResult(url, headers, webview));
+              "navigationRequest", args, new OnNavigationRequestResult(url, headers, webview));
     } else {
       methodChannel.invokeMethod("navigationRequest", args);
     }
   }
 
-    // This method attempts to avoid using WebViewClientCompat due to bug
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=925887. Also, see
-    // https://github.com/flutter/flutter/issues/29446.
-    WebViewClient createWebViewClient(boolean hasNavigationDelegate) {
-        this.hasNavigationDelegate = hasNavigationDelegate;
+  // This method attempts to avoid using WebViewClientCompat due to bug
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=925887. Also, see
+  // https://github.com/flutter/flutter/issues/29446.
+  WebViewClient createWebViewClient(boolean hasNavigationDelegate) {
+    this.hasNavigationDelegate = hasNavigationDelegate;
 
-        if (!hasNavigationDelegate || android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return internalCreateWebViewClient();
-        }
-
-        return internalCreateWebViewClientCompat();
+    if (!hasNavigationDelegate || android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      return internalCreateWebViewClient();
     }
 
-    private WebViewClient internalCreateWebViewClient() {
-        return new WebViewClient() {
-            @Override
-            public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
-                FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
-            }
+    return internalCreateWebViewClientCompat();
+  }
 
-            @TargetApi(Build.VERSION_CODES.N)
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
-            }
+  private WebViewClient internalCreateWebViewClient() {
+    return new WebViewClient() {
+      @Override
+      public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+        FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
+      }
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                FlutterWebViewClient.this.onPageFinished(view, url);
-            }
-        };
-    }
+      @TargetApi(Build.VERSION_CODES.N)
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+        return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
+      }
 
-    private WebViewClientCompat internalCreateWebViewClientCompat() {
-        return new WebViewClientCompat() {
-            @Override
-            public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
-                FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
-            }
+      @Override
+      public void onPageFinished(WebView view, String url) {
+        FlutterWebViewClient.this.onPageFinished(view, url);
+      }
+    };
+  }
 
-            @Override
-            public boolean shouldOverrideUrlLoading(
-                    @NonNull WebView view, @NonNull WebResourceRequest request) {
-                return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
-            }
+  private WebViewClientCompat internalCreateWebViewClientCompat() {
+    return new WebViewClientCompat() {
+      @Override
+      public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+        FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
+      }
 
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, url);
-            }
+      @Override
+      public boolean shouldOverrideUrlLoading(
+              @NonNull WebView view, @NonNull WebResourceRequest request) {
+        return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
+      }
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                FlutterWebViewClient.this.onPageFinished(view, url);
-            }
-        };
-    }
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, url);
+      }
 
+      @Override
+      public void onPageFinished(WebView view, String url) {
+        FlutterWebViewClient.this.onPageFinished(view, url);
+      }
+    };
+  }
 
   private static class OnNavigationRequestResult implements MethodChannel.Result {
     private final String url;
@@ -182,7 +182,7 @@ class FlutterWebViewClient {
     @Override
     public void notImplemented() {
       throw new IllegalStateException(
-          "navigationRequest must be implemented by the webview method channel");
+              "navigationRequest must be implemented by the webview method channel");
     }
 
     private void loadUrl() {
