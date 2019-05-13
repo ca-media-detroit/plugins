@@ -661,21 +661,18 @@ class CookieManager {
 
   /// Adds a cookie.
   ///
-  /// This is supported for >= IOS 11.
+  /// This is supported for only Android.
+  /// Use headers with WebViewController.loadUrl method for set cookies in iOS.
   Future<void> addCookie({
-    @required String domain,
-    @required String name,
-    @required String value,
-    String path = '/',
+    @required String url,
+    @required String cookieString,
   }) {
-    assert(domain != null && name != null && value != null);
+    assert(cookieString != null);
     return _channel.invokeMethod(
       'addCookie',
       <String, dynamic>{
-        'domain': domain,
-        'name': name,
-        'value': value,
-        'path': path,
+        'url': url,
+        'cookieString': cookieString,
       },
     );
   }
