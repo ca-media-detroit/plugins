@@ -196,6 +196,8 @@ static const int SOURCE_GALLERY = 1;
     if (image == nil) {
       image = [info objectForKey:UIImagePickerControllerOriginalImage];
     }
+      
+    BOOL saveAsPNG = [self hasAlpha:image];
     image = [self normalizedImage:image];
 
     NSNumber *maxWidth = [_arguments objectForKey:@"maxWidth"];
@@ -205,7 +207,6 @@ static const int SOURCE_GALLERY = 1;
       image = [self scaledImage:image maxWidth:maxWidth maxHeight:maxHeight];
     }
 
-    BOOL saveAsPNG = [self hasAlpha:image];
     NSData *data =
         saveAsPNG ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, 1.0);
     NSString *fileExtension = saveAsPNG ? @"image_picker_%@.png" : @"image_picker_%@.jpg";
