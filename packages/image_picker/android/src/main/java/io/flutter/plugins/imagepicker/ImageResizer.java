@@ -27,7 +27,11 @@ class ImageResizer {
    * <p>If no resizing is needed, returns the path for the original image.
    */
   String resizeImageIfNeeded(String imagePath, Double maxWidth, Double maxHeight, int compressionQuality) {
-    boolean shouldScale = maxWidth != null || maxHeight != null;
+    Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+    double originalWidth = bmp.getWidth() * 1.0;
+    double originalHeight = bmp.getHeight() * 1.0;
+
+    boolean shouldScale = (maxWidth != null || maxHeight != null) && (maxWidth < originalWidth || maxHeight < originalHeight);
 
     if (!shouldScale) {
       return imagePath;
@@ -48,39 +52,15 @@ class ImageResizer {
     double originalWidth = bmp.getWidth() * 1.0;
     double originalHeight = bmp.getHeight() * 1.0;
 
-    boolean hasMaxWidth = maxWidth != null;
-    boolean hasMaxHeight = maxHeight != null;
+    Double width;
+    Double height;
 
-    Double width = hasMaxWidth ? Math.min(originalWidth, maxWidth) : originalWidth;
-    Double height = hasMaxHeight ? Math.min(originalHeight, maxHeight) : originalHeight;
-
-    boolean shouldDownscaleWidth = hasMaxWidth && maxWidth < originalWidth;
-    boolean shouldDownscaleHeight = hasMaxHeight && maxHeight < originalHeight;
-    boolean shouldDownscale = shouldDownscaleWidth || shouldDownscaleHeight;
-
-    if (shouldDownscale) {
-      double downscaledWidth = (height / originalHeight) * originalWidth;
-      double downscaledHeight = (width / originalWidth) * originalHeight;
-
-      if (width < height) {
-        if (!hasMaxWidth) {
-          width = downscaledWidth;
-        } else {
-          height = downscaledHeight;
-        }
-      } else if (height < width) {
-        if (!hasMaxHeight) {
-          height = downscaledHeight;
-        } else {
-          width = downscaledWidth;
-        }
-      } else {
-        if (originalWidth < originalHeight) {
-          width = downscaledWidth;
-        } else if (originalHeight < originalWidth) {
-          height = downscaledHeight;
-        }
-      }
+    if (maxWidth * originalHeight > maxHeight * originalWidth) {
+      width = maxHeight * originalWidth / originalHeight;
+      height = maxHeight;
+    } else {
+      width = maxWidth;
+      height = maxWidth * originalHeight / originalWidth;
     }
 
     Bitmap scaledBmp = Bitmap.createScaledBitmap(bmp, width.intValue(), height.intValue(), false);
