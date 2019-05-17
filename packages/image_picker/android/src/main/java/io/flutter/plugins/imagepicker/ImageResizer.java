@@ -61,7 +61,7 @@ class ImageResizer {
       height = maxWidth * originalHeight / originalWidth;
     }
 
-    Bitmap scaledBmp = Bitmap.createScaledBitmap(bmp, width.intValue(), height.intValue(), false);
+    Bitmap scaledBmp = Bitmap.createScaledBitmap(bmp, width.intValue(), height.intValue(), true);
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     boolean saveAsPNG = bmp.hasAlpha();
     scaledBmp.compress(
