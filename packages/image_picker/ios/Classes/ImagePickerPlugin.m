@@ -207,8 +207,9 @@ static const int SOURCE_GALLERY = 1;
       image = [self scaledImage:image maxWidth:maxWidth maxHeight:maxHeight];
     }
 
+    NSNumber *quality = [_arguments objectForKey:@"iOSJpegCompressionQuality"];
     NSData *data =
-        saveAsPNG ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, 1.0);
+        saveAsPNG ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, quality / 100);
     NSString *fileExtension = saveAsPNG ? @"image_picker_%@.png" : @"image_picker_%@.jpg";
     NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
     NSString *tmpFile = [NSString stringWithFormat:fileExtension, guid];
