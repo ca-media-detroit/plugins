@@ -46,7 +46,7 @@ class ImagePicker {
     int compressionQuality = 90,
   }) async {
     assert(source != null);
-    assert(compressionQuality >= 0 && compressionQuality <= 100);
+    assert(compressionQuality > 0 && compressionQuality <= 100);
 
     if (maxWidth != null && maxWidth < 0) {
       throw ArgumentError.value(maxWidth, 'maxWidth cannot be negative');
