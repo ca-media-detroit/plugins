@@ -38,7 +38,7 @@ class ImageResizer {
     }
 
     try {
-      File scaledImage = resizedImage(imagePath, maxWidth, maxHeight, compressionQuality);
+      File scaledImage = resizedImage(imagePath, bmp, maxWidth, maxHeight, compressionQuality);
       exifDataCopier.copyExif(imagePath, scaledImage.getPath());
 
       return scaledImage.getPath();
@@ -47,11 +47,9 @@ class ImageResizer {
     }
   }
 
-  private File resizedImage(String path, Double maxWidth, Double maxHeight, int compressionQuality) throws IOException {
-    Bitmap bmp = BitmapFactory.decodeFile(path);
+  private File resizedImage(String path, Bitmap bmp, Double maxWidth, Double maxHeight, int compressionQuality) throws IOException {
     double originalWidth = bmp.getWidth() * 1.0;
     double originalHeight = bmp.getHeight() * 1.0;
-
     Double width;
     Double height;
 
