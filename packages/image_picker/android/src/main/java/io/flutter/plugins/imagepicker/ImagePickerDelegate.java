@@ -210,7 +210,8 @@ public class ImagePickerDelegate
     if (path != null) {
       Double maxWidth = (Double) resultMap.get(ImagePickerCache.MAP_KEY_MAX_WIDTH);
       Double maxHeight = (Double) resultMap.get(ImagePickerCache.MAP_KEY_MAX_HEIGHT);
-      String newPath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight);
+      int compressionQuality = (int) resultMap.get(ImagePickerCache.MAP_KEY_COMPRESSION_QUALITY);
+      String newPath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight, compressionQuality);
       resultMap.put(ImagePickerCache.MAP_KEY_PATH, newPath);
     }
     if (resultMap.isEmpty()) {
@@ -500,7 +501,8 @@ public class ImagePickerDelegate
     if (methodCall != null) {
       Double maxWidth = methodCall.argument("maxWidth");
       Double maxHeight = methodCall.argument("maxHeight");
-      String finalImagePath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight);
+      int compressionQuality = methodCall.argument("compressionQuality");
+      String finalImagePath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight, compressionQuality);
 
       finishWithSuccess(finalImagePath);
 

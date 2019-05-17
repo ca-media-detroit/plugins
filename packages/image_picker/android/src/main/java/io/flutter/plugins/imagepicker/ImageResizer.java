@@ -26,7 +26,7 @@ class ImageResizer {
    *
    * <p>If no resizing is needed, returns the path for the original image.
    */
-  String resizeImageIfNeeded(String imagePath, Double maxWidth, Double maxHeight) {
+  String resizeImageIfNeeded(String imagePath, Double maxWidth, Double maxHeight, int compressionQuality) {
     boolean shouldScale = maxWidth != null || maxHeight != null;
 
     if (!shouldScale) {
@@ -34,7 +34,7 @@ class ImageResizer {
     }
 
     try {
-      File scaledImage = resizedImage(imagePath, maxWidth, maxHeight);
+      File scaledImage = resizedImage(imagePath, maxWidth, maxHeight, compressionQuality);
       exifDataCopier.copyExif(imagePath, scaledImage.getPath());
 
       return scaledImage.getPath();
@@ -43,7 +43,7 @@ class ImageResizer {
     }
   }
 
-  private File resizedImage(String path, Double maxWidth, Double maxHeight) throws IOException {
+  private File resizedImage(String path, Double maxWidth, Double maxHeight, int compressionQuality) throws IOException {
     Bitmap bmp = BitmapFactory.decodeFile(path);
     double originalWidth = bmp.getWidth() * 1.0;
     double originalHeight = bmp.getHeight() * 1.0;
@@ -87,7 +87,7 @@ class ImageResizer {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     boolean saveAsPNG = bmp.hasAlpha();
     scaledBmp.compress(
-        saveAsPNG ? Bitmap.CompressFormat.PNG : Bitmap.CompressFormat.JPEG, 100, outputStream);
+        saveAsPNG ? Bitmap.CompressFormat.PNG : Bitmap.CompressFormat.JPEG, compressionQuality, outputStream);
 
     String[] pathParts = path.split("/");
     String imageName = pathParts[pathParts.length - 1];

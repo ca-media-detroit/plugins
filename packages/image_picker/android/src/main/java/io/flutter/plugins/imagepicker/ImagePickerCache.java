@@ -18,6 +18,7 @@ class ImagePickerCache {
   static final String MAP_KEY_PATH = "path";
   static final String MAP_KEY_MAX_WIDTH = "maxWidth";
   static final String MAP_KEY_MAX_HEIGHT = "maxHeight";
+  static final String MAP_KEY_COMPRESSION_QUALITY = "compressionQuality";
   private static final String MAP_KEY_TYPE = "type";
   private static final String MAP_KEY_ERROR_CODE = "errorCode";
   private static final String MAP_KEY_ERROR_MESSAGE = "errorMessage";
@@ -29,6 +30,7 @@ class ImagePickerCache {
       "flutter_image_picker_error_message";
   private static final String SHARED_PREFERENCE_MAX_WIDTH_KEY = "flutter_image_picker_max_width";
   private static final String SHARED_PREFERENCE_MAX_HEIGHT_KEY = "flutter_image_picker_max_height";
+  private static final String SHARED_PREFERENCE_COMPRESSION_QUALITY_KEY = "flutter_image_picker_compression_quality";
   private static final String SHARED_PREFERENCE_TYPE_KEY = "flutter_image_picker_type";
   private static final String SHARED_PREFERENCE_PENDING_IMAGE_URI_PATH_KEY =
       "flutter_image_picker_pending_image_uri";
@@ -61,10 +63,11 @@ class ImagePickerCache {
   static void saveDemensionWithMethodCall(MethodCall methodCall) {
     Double maxWidth = methodCall.argument("maxWidth");
     Double maxHeight = methodCall.argument("maxHeight");
-    setMaxDimension(maxWidth, maxHeight);
+    int compressionQuality = methodCall.argument("compressionQuality");
+    setMaxDimension(maxWidth, maxHeight, compressionQuality);
   }
 
-  private static void setMaxDimension(Double maxWidth, Double maxHeight) {
+  private static void setMaxDimension(Double maxWidth, Double maxHeight, int compressionQuality) {
     if (getFilePref == null) {
       return;
     }
@@ -76,6 +79,7 @@ class ImagePickerCache {
     if (maxHeight != null) {
       editor.putLong(SHARED_PREFERENCE_MAX_HEIGHT_KEY, Double.doubleToRawLongBits(maxHeight));
     }
+    editor.putInt(SHARED_PREFERENCE_COMPRESSION_QUALITY_KEY, compressionQuality);
     editor.apply();
   }
 
@@ -158,6 +162,12 @@ class ImagePickerCache {
         resultMap.put(
             MAP_KEY_MAX_HEIGHT,
             Double.longBitsToDouble(getFilePref.getLong(SHARED_PREFERENCE_MAX_HEIGHT_KEY, 0)));
+      }
+
+      if (getFilePref.contains(SHARED_PREFERENCE_MAX_HEIGHT_KEY)) {
+        resultMap.put(
+            MAP_KEY_COMPRESSION_QUALITY,
+            getFilePref.getInt(SHARED_PREFERENCE_COMPRESSION_QUALITY_KEY, 90));
       }
     }
 

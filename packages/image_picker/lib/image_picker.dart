@@ -36,16 +36,17 @@ class ImagePicker {
   /// In Android, the MainActivity can be destroyed for various reasons. If that happens, the result will be lost
   /// in this call. You can then call [retrieveLostData] when your app relaunches to retrieve the lost data.
   ///
-  /// In iOS, the image can be jpeg with quality specified by [iOSJpegCompressionQuality].
-  /// It is not used in Android.
+  /// You can specify compression quality by [compressionQuality].
+  /// In Android, the image will be compressed only if [maxWidth] or [maxHeight] is specified.
+  /// In iOS, the image will be compressed even if they are not specified.
   static Future<File> pickImage({
     @required ImageSource source,
     double maxWidth,
     double maxHeight,
-    int iOSJpegCompressionQuality = 100,
+    int compressionQuality = 90,
   }) async {
     assert(source != null);
-    assert(iOSJpegCompressionQuality >= 0 && iOSJpegCompressionQuality <= 100);
+    assert(compressionQuality >= 0 && compressionQuality <= 100);
 
     if (maxWidth != null && maxWidth < 0) {
       throw ArgumentError.value(maxWidth, 'maxWidth cannot be negative');
@@ -64,7 +65,7 @@ class ImagePicker {
         'source': source.index,
         'maxWidth': maxWidth,
         'maxHeight': maxHeight,
-        'iOSJpegCompressionQuality': iOSJpegCompressionQuality,
+        'compressionQuality': compressionQuality,
       },
     );
 
