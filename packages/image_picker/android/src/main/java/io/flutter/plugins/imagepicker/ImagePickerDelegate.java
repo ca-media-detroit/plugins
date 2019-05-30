@@ -317,6 +317,21 @@ public class ImagePickerDelegate
     launchTakeImageWithCameraIntent();
   }
 
+  public void resizeAndCompressImageIfNeeded(MethodCall methodCall, MethodChannel.Result result) {
+    if (!setPendingMethodCallAndResult(methodCall, result)) {
+      finishWithAlreadyActiveError(result);
+      return;
+    }
+
+    String path = methodCall.argument("filePath");
+    Double maxWidth = methodCall.argument("maxWidth");
+    Double maxHeight = methodCall.argument("maxHeight");
+    int compressionQuality = methodCall.argument("compressionQuality");
+    String finalImagePath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight, compressionQuality);
+
+    finishWithSuccess(finalImagePath);
+  }
+
   private boolean needRequestCameraPermission() {
     if (permissionManager == null) {
       return false;

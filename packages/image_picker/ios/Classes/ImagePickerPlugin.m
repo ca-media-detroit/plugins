@@ -73,6 +73,16 @@ static const int SOURCE_GALLERY = 1;
                                    details:nil]);
         break;
     }
+  } else if ([@"resizeAndCompressImage" isEqualToString:call.method]) {
+    _result = result;
+    _arguments = call.arguments;
+    
+    NSString *path = [_arguments objectForKey:@"filePath"];
+    UIImage *image = [UIImage imageWithContentsOfFile:path];
+    [self resizeAndCompressImage:image];
+    
+    _result = nil;
+    _arguments = nil;
   } else if ([@"pickVideo" isEqualToString:call.method]) {
     _imagePickerController = [[UIImagePickerController alloc] init];
     _imagePickerController.modalPresentationStyle = UIModalPresentationCurrentContext;
@@ -178,6 +188,35 @@ static const int SOURCE_GALLERY = 1;
   [_viewController presentViewController:_imagePickerController animated:YES completion:nil];
 }
 
+- (void)resizeAndCompressImage:(UIImage *)image {
+  BOOL saveAsPNG = [self hasAlpha:image];
+  image = [self normalizedImage:image];
+  
+  NSNumber *maxWidth = [_arguments objectForKey:@"maxWidth"];
+  NSNumber *maxHeight = [_arguments objectForKey:@"maxHeight"];
+  
+  if (maxWidth != (id)[NSNull null] || maxHeight != (id)[NSNull null]) {
+    image = [self scaledImage:image maxWidth:maxWidth maxHeight:maxHeight];
+  }
+  
+  NSNumber *compressionQuality = [_arguments objectForKey:@"compressionQuality"];
+  CGFloat quality = (CGFloat) [compressionQuality intValue] / 100;
+  NSData *data = saveAsPNG ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, quality);
+  NSString *fileExtension = saveAsPNG ? @"image_picker_%@.png" : @"image_picker_%@.jpg";
+  NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
+  NSString *tmpFile = [NSString stringWithFormat:fileExtension, guid];
+  NSString *tmpDirectory = NSTemporaryDirectory();
+  NSString *tmpPath = [tmpDirectory stringByAppendingPathComponent:tmpFile];
+  
+  if ([[NSFileManager defaultManager] createFileAtPath:tmpPath contents:data attributes:nil]) {
+    _result(tmpPath);
+  } else {
+    _result([FlutterError errorWithCode:@"create_error"
+                                message:@"Temporary file could not be created"
+                                details:nil]);
+  }
+}
+
 - (void)imagePickerController:(UIImagePickerController *)picker
     didFinishPickingMediaWithInfo:(NSDictionary<NSString *, id> *)info {
   NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
@@ -196,33 +235,8 @@ static const int SOURCE_GALLERY = 1;
     if (image == nil) {
       image = [info objectForKey:UIImagePickerControllerOriginalImage];
     }
-      
-    BOOL saveAsPNG = [self hasAlpha:image];
-    image = [self normalizedImage:image];
-
-    NSNumber *maxWidth = [_arguments objectForKey:@"maxWidth"];
-    NSNumber *maxHeight = [_arguments objectForKey:@"maxHeight"];
-
-    if (maxWidth != (id)[NSNull null] || maxHeight != (id)[NSNull null]) {
-      image = [self scaledImage:image maxWidth:maxWidth maxHeight:maxHeight];
-    }
-
-    NSNumber *compressionQuality = [_arguments objectForKey:@"compressionQuality"];
-    CGFloat quality = (CGFloat) [compressionQuality intValue] / 100;
-    NSData *data = saveAsPNG ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, quality);
-    NSString *fileExtension = saveAsPNG ? @"image_picker_%@.png" : @"image_picker_%@.jpg";
-    NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
-    NSString *tmpFile = [NSString stringWithFormat:fileExtension, guid];
-    NSString *tmpDirectory = NSTemporaryDirectory();
-    NSString *tmpPath = [tmpDirectory stringByAppendingPathComponent:tmpFile];
-
-    if ([[NSFileManager defaultManager] createFileAtPath:tmpPath contents:data attributes:nil]) {
-      _result(tmpPath);
-    } else {
-      _result([FlutterError errorWithCode:@"create_error"
-                                  message:@"Temporary file could not be created"
-                                  details:nil]);
-    }
+    
+    [self resizeAndCompressImage:image];
   }
 
   _result = nil;

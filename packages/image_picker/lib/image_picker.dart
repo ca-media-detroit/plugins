@@ -72,6 +72,39 @@ class ImagePicker {
     return path == null ? null : File(path);
   }
 
+  static Future<File> resizeAndCompressImage({
+    @required String filePath,
+    double maxWidth,
+    double maxHeight,
+    int compressionQuality = 90,
+  }) async {
+    assert(filePath != null);
+    assert(compressionQuality > 0 && compressionQuality <= 100);
+
+    if (maxWidth != null && maxWidth < 0) {
+      throw ArgumentError.value(maxWidth, 'maxWidth cannot be negative');
+    }
+
+    if (maxHeight != null && maxHeight < 0) {
+      throw ArgumentError.value(maxHeight, 'maxHeight cannot be negative');
+    }
+
+    // TODO(amirh): remove this on when the invokeMethod update makes it to stable Flutter.
+    // https://github.com/flutter/flutter/issues/26431
+    // ignore: strong_mode_implicit_dynamic_method
+    final String path = await _channel.invokeMethod(
+      'resizeAndCompressImage',
+      <String, dynamic>{
+        'filePath': filePath,
+        'maxWidth': maxWidth,
+        'maxHeight': maxHeight,
+        'compressionQuality': compressionQuality,
+      },
+    );
+
+    return path == null ? null : File(path);
+  }
+
   /// Returns a [File] object pointing to the video that was picked.
   ///
   /// The [source] argument controls where the video comes from. This can

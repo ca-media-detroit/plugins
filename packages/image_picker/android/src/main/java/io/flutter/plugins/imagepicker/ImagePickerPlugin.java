@@ -17,6 +17,7 @@ import java.io.File;
 public class ImagePickerPlugin implements MethodChannel.MethodCallHandler {
 
   static final String METHOD_CALL_IMAGE = "pickImage";
+  static final String METHOD_CALL_RESIZE_COMPRESS = "resizeAndCompressImage";
   static final String METHOD_CALL_VIDEO = "pickVideo";
   private static final String METHOD_CALL_RETRIEVE = "retrieve";
 
@@ -114,6 +115,9 @@ public class ImagePickerPlugin implements MethodChannel.MethodCallHandler {
           default:
             throw new IllegalArgumentException("Invalid image source: " + imageSource);
         }
+        break;
+      case METHOD_CALL_RESIZE_COMPRESS:
+        delegate.resizeAndCompressImageIfNeeded(call, result);
         break;
       case METHOD_CALL_VIDEO:
         imageSource = call.argument("source");
