@@ -113,6 +113,9 @@ class WebView extends StatefulWidget {
     this.onWebViewCreated,
     this.initialUrl,
     this.javascriptMode = JavascriptMode.disabled,
+    this.username,
+    this.password,
+    this.userAgent,
     this.javascriptChannels,
     this.navigationDelegate,
     this.gestureRecognizers,
@@ -139,6 +142,15 @@ class WebView extends StatefulWidget {
 
   /// Whether Javascript execution is enabled.
   final JavascriptMode javascriptMode;
+
+  /// basic auth username
+  final String username;
+
+  /// basic auth password
+  final String password;
+
+  /// custom useragent to set for webview
+  final String userAgent;
 
   /// The set of [JavascriptChannel]s available to JavaScript code running in the web view.
   ///
@@ -293,13 +305,20 @@ Set<String> _extractChannelNames(Set<JavascriptChannel> channels) {
 }
 
 class _CreationParams {
-  _CreationParams(
-      {this.initialUrl, this.settings, this.javascriptChannelNames});
+  _CreationParams({
+    this.initialUrl,
+    this.settings,
+    this.username,
+    this.password,
+    this.javascriptChannelNames,
+  });
 
   static _CreationParams fromWidget(WebView widget) {
     return _CreationParams(
       initialUrl: widget.initialUrl,
       settings: _WebSettings.fromWidget(widget),
+      username: widget.username,
+      password: widget.password,
       javascriptChannelNames:
           _extractChannelNames(widget.javascriptChannels).toList(),
     );
@@ -309,12 +328,18 @@ class _CreationParams {
 
   final _WebSettings settings;
 
+  final String username;
+
+  final String password;
+
   final List<String> javascriptChannelNames;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'initialUrl': initialUrl,
       'settings': settings.toMap(),
+      'username': username,
+      'password': password,
       'javascriptChannelNames': javascriptChannelNames,
     };
   }
@@ -324,21 +349,25 @@ class _WebSettings {
   _WebSettings({
     this.javascriptMode,
     this.hasNavigationDelegate,
+    this.userAgent,
   });
 
   static _WebSettings fromWidget(WebView widget) {
     return _WebSettings(
       javascriptMode: widget.javascriptMode,
       hasNavigationDelegate: widget.navigationDelegate != null,
+      userAgent: widget.userAgent,
     );
   }
 
   final JavascriptMode javascriptMode;
   final bool hasNavigationDelegate;
+  final String userAgent;
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'jsMode': javascriptMode.index,
+      'userAgent': userAgent,
       'hasNavigationDelegate': hasNavigationDelegate,
     };
   }
@@ -351,6 +380,7 @@ class _WebSettings {
     if (hasNavigationDelegate != newSettings.hasNavigationDelegate) {
       updates['hasNavigationDelegate'] = newSettings.hasNavigationDelegate;
     }
+    updates['userAgent'] = newSettings.userAgent;
     return updates;
   }
 }
@@ -442,6 +472,11 @@ class WebViewController {
     // ignore: strong_mode_implicit_dynamic_method
     final String url = await _channel.invokeMethod('currentUrl');
     return url;
+  }
+
+  Future<String> userAgent() async {
+    final String userAgent = await _channel.invokeMethod('userAgent');
+    return userAgent;
   }
 
   /// Checks whether there's a back history item.
@@ -623,6 +658,24 @@ class CookieManager {
       // ignore: strong_mode_implicit_dynamic_method
       .invokeMethod('clearCookies')
       .then<bool>((dynamic result) => result);
+
+  /// Adds a cookie.
+  ///
+  /// This is supported for only Android.
+  /// Use headers with WebViewController.loadUrl method for set cookies in iOS.
+  Future<void> addCookie({
+    @required String url,
+    @required String cookieString,
+  }) {
+    assert(cookieString != null);
+    return _channel.invokeMethod(
+      'addCookie',
+      <String, dynamic>{
+        'url': url,
+        'cookieString': cookieString,
+      },
+    );
+  }
 }
 
 // Throws an ArgumentError if `url` is not a valid URL string.

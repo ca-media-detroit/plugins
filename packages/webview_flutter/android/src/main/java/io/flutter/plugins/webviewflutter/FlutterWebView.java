@@ -9,15 +9,18 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.view.View;
+import android.webkit.HttpAuthHandler;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.platform.PlatformView;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,8 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   private final Handler platformThreadHandler;
 
   @SuppressWarnings("unchecked")
-  FlutterWebView(Context context, BinaryMessenger messenger, int id, Map<String, Object> params) {
+  FlutterWebView(
+          Context context, BinaryMessenger messenger, int id, final Map<String, Object> params) {
     webView = new WebView(context);
     platformThreadHandler = new Handler(context.getMainLooper());
     // Allow local storage.
@@ -39,7 +43,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     methodChannel = new MethodChannel(messenger, "plugins.flutter.io/webview_" + id);
     methodChannel.setMethodCallHandler(this);
 
-    flutterWebViewClient = new FlutterWebViewClient(methodChannel);
+    flutterWebViewClient = new FlutterWebViewClient(methodChannel, params);
     applySettings((Map<String, Object>) params.get("settings"));
 
     if (params.containsKey(JS_CHANNEL_NAMES_FIELD)) {
@@ -80,6 +84,9 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         break;
       case "reload":
         reload(result);
+        break;
+      case "userAgent":
+        userAgent(methodCall, result);
         break;
       case "currentUrl":
         currentUrl(result);
@@ -144,6 +151,10 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     result.success(webView.getUrl());
   }
 
+  private void userAgent(MethodCall methodCall, Result result) {
+    result.success(webView.getSettings().getUserAgentString());
+  }
+
   @SuppressWarnings("unchecked")
   private void updateSettings(MethodCall methodCall, Result result) {
     applySettings((Map<String, Object>) methodCall.arguments);
@@ -157,13 +168,13 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       throw new UnsupportedOperationException("JavaScript string cannot be null");
     }
     webView.evaluateJavascript(
-        jsString,
-        new android.webkit.ValueCallback<String>() {
-          @Override
-          public void onReceiveValue(String value) {
-            result.success(value);
-          }
-        });
+            jsString,
+            new android.webkit.ValueCallback<String>() {
+              @Override
+              public void onReceiveValue(String value) {
+                result.success(value);
+              }
+            });
   }
 
   @SuppressWarnings("unchecked")
@@ -198,9 +209,12 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
           final boolean hasNavigationDelegate = (boolean) settings.get(key);
 
           final WebViewClient webViewClient =
-              flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
+                  flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
 
           webView.setWebViewClient(webViewClient);
+          break;
+        case "userAgent":
+          webView.getSettings().setUserAgentString((String) settings.get(key));
           break;
         default:
           throw new IllegalArgumentException("Unknown WebView setting: " + key);
@@ -224,7 +238,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   private void registerJavaScriptChannelNames(List<String> channelNames) {
     for (String channelName : channelNames) {
       webView.addJavascriptInterface(
-          new JavaScriptChannel(methodChannel, channelName, platformThreadHandler), channelName);
+              new JavaScriptChannel(methodChannel, channelName, platformThreadHandler), channelName);
     }
   }
 

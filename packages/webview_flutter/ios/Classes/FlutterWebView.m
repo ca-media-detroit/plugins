@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #import "FlutterWebView.h"
-#import "FLTWKNavigationDelegate.h"
 #import "JavaScriptChannelHandler.h"
 
 @implementation FLTWebViewFactory {
@@ -39,9 +38,9 @@
   int64_t _viewId;
   FlutterMethodChannel* _channel;
   NSString* _currentUrl;
+  id _Nullable _args;
   // The set of registered JavaScript channel names.
   NSMutableSet* _javaScriptChannelNames;
-  FLTWKNavigationDelegate* _navigationDelegate;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -50,6 +49,7 @@
               binaryMessenger:(NSObject<FlutterBinaryMessenger>*)messenger {
   if ([super init]) {
     _viewId = viewId;
+    _args = args;
 
     NSString* channelName = [NSString stringWithFormat:@"plugins.flutter.io/webview_%lld", viewId];
     _channel = [FlutterMethodChannel methodChannelWithName:channelName binaryMessenger:messenger];
@@ -66,8 +66,7 @@
     configuration.userContentController = userContentController;
 
     _webView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
-    _navigationDelegate = [[FLTWKNavigationDelegate alloc] initWithChannel:_channel];
-    _webView.navigationDelegate = _navigationDelegate;
+    _webView.navigationDelegate = self;
     __weak __typeof__(self) weakSelf = self;
     [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
       [weakSelf onMethodCall:call result:result];
@@ -81,6 +80,63 @@
     }
   }
   return self;
+}
+
+- (void)webView:(WKWebView *)webView didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler {
+
+    NSString* username = _args[@"username"];
+    NSString* password = _args[@"password"];
+
+    if ([username isKindOfClass:[NSString class]] && [password isKindOfClass:[NSString class]]) {
+        NSURLCredential *credential = [NSURLCredential credentialWithUser:(username)
+                                                                 password:(password)
+                                                              persistence:NSURLCredentialPersistenceForSession];
+        completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+    }
+}
+
+- (void)webView:(WKWebView*)webView
+    decidePolicyForNavigationAction:(WKNavigationAction*)navigationAction
+                    decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+  if (!self.hasDartNavigationDelegate) {
+    decisionHandler(WKNavigationActionPolicyAllow);
+    return;
+  }
+  NSDictionary* arguments = @{
+    @"url" : navigationAction.request.URL.absoluteString,
+    @"isForMainFrame" : @(navigationAction.targetFrame.isMainFrame)
+  };
+  [_channel invokeMethod:@"navigationRequest"
+                     arguments:arguments
+                        result:^(id _Nullable result) {
+                          if ([result isKindOfClass:[FlutterError class]]) {
+                            NSLog(@"navigationRequest has unexpectedly completed with an error, "
+                                  @"allowing navigation.");
+                            decisionHandler(WKNavigationActionPolicyAllow);
+                            return;
+                          }
+                          if (result == FlutterMethodNotImplemented) {
+                            NSLog(@"navigationRequest was unexepectedly not implemented: %@, "
+                                  @"allowing navigation.",
+                                  result);
+                            decisionHandler(WKNavigationActionPolicyAllow);
+                            return;
+                          }
+                          if (![result isKindOfClass:[NSNumber class]]) {
+                            NSLog(@"navigationRequest unexpectedly returned a non boolean value: "
+                                  @"%@, allowing navigation.",
+                                  result);
+                            decisionHandler(WKNavigationActionPolicyAllow);
+                            return;
+                          }
+                          NSNumber* typedResult = result;
+                          decisionHandler([typedResult boolValue] ? WKNavigationActionPolicyAllow
+                                                                  : WKNavigationActionPolicyCancel);
+                        }];
+}
+
+- (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation {
+  [_channel invokeMethod:@"onPageFinished" arguments:@{@"url" : webView.URL.absoluteString}];
 }
 
 - (UIView*)view {
@@ -102,6 +158,8 @@
     [self onGoForward:call result:result];
   } else if ([[call method] isEqualToString:@"reload"]) {
     [self onReload:call result:result];
+  } else if ([[call method] isEqualToString:@"userAgent"]) {
+    [self userAgent:call result:result];
   } else if ([[call method] isEqualToString:@"currentUrl"]) {
     [self onCurrentUrl:call result:result];
   } else if ([[call method] isEqualToString:@"evaluateJavascript"]) {
@@ -156,6 +214,11 @@
 - (void)onReload:(FlutterMethodCall*)call result:(FlutterResult)result {
   [_webView reload];
   result(nil);
+}
+
+- (void)userAgent:(FlutterMethodCall*)call result:(FlutterResult)result {
+  NSString* userAgent = [_webView customUserAgent];
+  result(userAgent);
 }
 
 - (void)onCurrentUrl:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -235,7 +298,16 @@
       [self updateJsMode:mode];
     } else if ([key isEqualToString:@"hasNavigationDelegate"]) {
       NSNumber* hasDartNavigationDelegate = settings[key];
-      _navigationDelegate.hasDartNavigationDelegate = [hasDartNavigationDelegate boolValue];
+      self.hasDartNavigationDelegate = [hasDartNavigationDelegate boolValue];
+    } else if ([key isEqualToString:@"userAgent"]) {
+      id userAgent = settings[key];
+      if (userAgent && ![userAgent isEqual:[NSNull null]]) {
+        if (@available(iOS 9.0, *)) {
+            _webView.customUserAgent = userAgent;
+        } else {
+          NSLog(@"webview_flutter: prior to iOS 9.0, a custom userAgent is not supported.");
+        }
+      }
     } else {
       NSLog(@"webview_flutter: unknown setting key: %@", key);
     }
