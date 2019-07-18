@@ -33,10 +33,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
   @SuppressWarnings("unchecked")
   FlutterWebView(
-<<<<<<< HEAD
-          Context context, BinaryMessenger messenger, int id, final Map<String, Object> params) {
-    webView = new WebView(context);
-=======
       Context context,
       BinaryMessenger messenger,
       int id,
@@ -44,7 +40,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       final View containerView) {
     webView = new InputAwareWebView(context, containerView);
 
->>>>>>> 3a9a33ff76582866d10a935870d25fdf62345b93
     platformThreadHandler = new Handler(context.getMainLooper());
     // Allow local storage.
     webView.getSettings().setDomStorageEnabled(true);
@@ -242,15 +237,13 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
           webView.setWebViewClient(webViewClient);
           break;
-<<<<<<< HEAD
         case "userAgent":
           webView.getSettings().setUserAgentString((String) settings.get(key));
-=======
+          break;
         case "debuggingEnabled":
           final boolean debuggingEnabled = (boolean) settings.get(key);
 
           webView.setWebContentsDebuggingEnabled(debuggingEnabled);
->>>>>>> 3a9a33ff76582866d10a935870d25fdf62345b93
           break;
         default:
           throw new IllegalArgumentException("Unknown WebView setting: " + key);
