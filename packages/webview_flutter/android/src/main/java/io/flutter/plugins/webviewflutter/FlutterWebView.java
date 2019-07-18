@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.view.View;
 import android.webkit.HttpAuthHandler;
 import android.webkit.WebStorage;
-import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import io.flutter.plugin.common.BinaryMessenger;
@@ -27,15 +26,25 @@ import java.util.Map;
 
 public class FlutterWebView implements PlatformView, MethodCallHandler {
   private static final String JS_CHANNEL_NAMES_FIELD = "javascriptChannelNames";
-  private final WebView webView;
+  private final InputAwareWebView webView;
   private final MethodChannel methodChannel;
   private final FlutterWebViewClient flutterWebViewClient;
   private final Handler platformThreadHandler;
 
   @SuppressWarnings("unchecked")
   FlutterWebView(
+<<<<<<< HEAD
           Context context, BinaryMessenger messenger, int id, final Map<String, Object> params) {
     webView = new WebView(context);
+=======
+      Context context,
+      BinaryMessenger messenger,
+      int id,
+      Map<String, Object> params,
+      final View containerView) {
+    webView = new InputAwareWebView(context, containerView);
+
+>>>>>>> 3a9a33ff76582866d10a935870d25fdf62345b93
     platformThreadHandler = new Handler(context.getMainLooper());
     // Allow local storage.
     webView.getSettings().setDomStorageEnabled(true);
@@ -59,6 +68,26 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   @Override
   public View getView() {
     return webView;
+  }
+
+  // @Override
+  // This is overriding a method that hasn't rolled into stable Flutter yet. Including the
+  // annotation would cause compile time failures in versions of Flutter too old to include the new
+  // method. However leaving it raw like this means that the method will be ignored in old versions
+  // of Flutter but used as an override anyway wherever it's actually defined.
+  // TODO(mklim): Add the @Override annotation once flutter/engine#9727 rolls to stable.
+  public void onInputConnectionUnlocked() {
+    webView.unlockInputConnection();
+  }
+
+  // @Override
+  // This is overriding a method that hasn't rolled into stable Flutter yet. Including the
+  // annotation would cause compile time failures in versions of Flutter too old to include the new
+  // method. However leaving it raw like this means that the method will be ignored in old versions
+  // of Flutter but used as an override anyway wherever it's actually defined.
+  // TODO(mklim): Add the @Override annotation once flutter/engine#9727 rolls to stable.
+  public void onInputConnectionLocked() {
+    webView.lockInputConnection();
   }
 
   @Override
@@ -213,8 +242,15 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
           webView.setWebViewClient(webViewClient);
           break;
+<<<<<<< HEAD
         case "userAgent":
           webView.getSettings().setUserAgentString((String) settings.get(key));
+=======
+        case "debuggingEnabled":
+          final boolean debuggingEnabled = (boolean) settings.get(key);
+
+          webView.setWebContentsDebuggingEnabled(debuggingEnabled);
+>>>>>>> 3a9a33ff76582866d10a935870d25fdf62345b93
           break;
         default:
           throw new IllegalArgumentException("Unknown WebView setting: " + key);
@@ -245,5 +281,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   @Override
   public void dispose() {
     methodChannel.setMethodCallHandler(null);
+    webView.dispose();
   }
 }
