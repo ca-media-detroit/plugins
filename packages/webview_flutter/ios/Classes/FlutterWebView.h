@@ -7,7 +7,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FLTWebViewController : NSObject <FlutterPlatformView, WKNavigationDelegate>
+@interface FLTWebViewController : NSObject <FlutterPlatformView>
 
 - (instancetype)initWithFrame:(CGRect)frame
                viewIdentifier:(int64_t)viewId
@@ -15,11 +15,6 @@ NS_ASSUME_NONNULL_BEGIN
               binaryMessenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
 - (UIView*)view;
-
-/**
- * Whether to delegate navigation decisions over the method channel.
- */
-@property(nonatomic, assign) BOOL hasDartNavigationDelegate;
 @end
 
 @interface FLTWebViewFactory : NSObject <FlutterPlatformViewFactory>

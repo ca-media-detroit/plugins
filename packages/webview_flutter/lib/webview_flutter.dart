@@ -328,6 +328,8 @@ CreationParams _creationParamsfromWidget(WebView widget) {
   return CreationParams(
     initialUrl: widget.initialUrl,
     webSettings: _webSettingsFromWidget(widget),
+    username: widget.username,
+    password: widget.password,
     javascriptChannelNames: _extractChannelNames(widget.javascriptChannels),
   );
 }
@@ -337,6 +339,7 @@ WebSettings _webSettingsFromWidget(WebView widget) {
     javascriptMode: widget.javascriptMode,
     hasNavigationDelegate: widget.navigationDelegate != null,
     debuggingEnabled: widget.debuggingEnabled,
+    userAgent: widget.userAgent,
   );
 }
 
