@@ -72,6 +72,8 @@
                                                              password:(password)
                                                           persistence:NSURLCredentialPersistenceForSession];
     completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+  } else {
+    completionHandler(NSURLSessionAuthChallengeUseCredential, nil);
   }
 }
 
