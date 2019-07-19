@@ -12,14 +12,12 @@ import android.view.View;
 import android.webkit.HttpAuthHandler;
 import android.webkit.WebStorage;
 import android.webkit.WebViewClient;
-
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.platform.PlatformView;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -192,13 +190,13 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       throw new UnsupportedOperationException("JavaScript string cannot be null");
     }
     webView.evaluateJavascript(
-            jsString,
-            new android.webkit.ValueCallback<String>() {
-              @Override
-              public void onReceiveValue(String value) {
-                result.success(value);
-              }
-            });
+        jsString,
+        new android.webkit.ValueCallback<String>() {
+          @Override
+          public void onReceiveValue(String value) {
+            result.success(value);
+          }
+        });
   }
 
   @SuppressWarnings("unchecked")
@@ -233,7 +231,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
           final boolean hasNavigationDelegate = (boolean) settings.get(key);
 
           final WebViewClient webViewClient =
-                  flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
+              flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
 
           webView.setWebViewClient(webViewClient);
           break;
@@ -267,7 +265,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   private void registerJavaScriptChannelNames(List<String> channelNames) {
     for (String channelName : channelNames) {
       webView.addJavascriptInterface(
-              new JavaScriptChannel(methodChannel, channelName, platformThreadHandler), channelName);
+          new JavaScriptChannel(methodChannel, channelName, platformThreadHandler), channelName);
     }
   }
 
