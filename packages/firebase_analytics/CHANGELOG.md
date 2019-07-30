@@ -1,3 +1,11 @@
+## 4.0.2
+
+* Update google-services Android gradle plugin to 4.3.0 in documentation and examples.
+
+## 4.0.1
+
+* Refactor unit tests to use `setMockMethodCallHandler`.
+
 ## 4.0.0
 
 * Added new tracking events:

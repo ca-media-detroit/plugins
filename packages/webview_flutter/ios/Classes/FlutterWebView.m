@@ -74,6 +74,8 @@
     }];
     NSDictionary<NSString*, id>* settings = args[@"settings"];
     [self applySettings:settings];
+    // TODO(amirh): return an error if apply settings failed once it's possible to do so.
+    // https://github.com/flutter/flutter/issues/36228
 
     NSString* initialUrl = args[@"initialUrl"];
     if ([initialUrl isKindOfClass:[NSString class]]) {
@@ -120,8 +122,12 @@
 }
 
 - (void)onUpdateSettings:(FlutterMethodCall*)call result:(FlutterResult)result {
-  [self applySettings:[call arguments]];
-  result(nil);
+  NSString* error = [self applySettings:[call arguments]];
+  if (error == nil) {
+    result(nil);
+    return;
+  }
+  result([FlutterError errorWithCode:@"updateSettings_failed" message:error details:nil]);
 }
 
 - (void)onLoadUrl:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -239,7 +245,9 @@
   }
 }
 
-- (void)applySettings:(NSDictionary<NSString*, id>*)settings {
+// Returns nil when successful, or an error message when one or more keys are unknown.
+- (NSString*)applySettings:(NSDictionary<NSString*, id>*)settings {
+  NSMutableArray<NSString*>* unknownKeys = [[NSMutableArray alloc] init];
   for (NSString* key in settings) {
     if ([key isEqualToString:@"jsMode"]) {
       NSNumber* mode = settings[key];
@@ -256,10 +264,17 @@
           NSLog(@"webview_flutter: prior to iOS 9.0, a custom userAgent is not supported.");
         }
       }
+    } else if ([key isEqualToString:@"debuggingEnabled"]) {
+      // no-op debugging is always enabled on iOS.
     } else {
-      NSLog(@"webview_flutter: unknown setting key: %@", key);
+      [unknownKeys addObject:key];
     }
   }
+  if ([unknownKeys count] == 0) {
+    return nil;
+  }
+  return [NSString stringWithFormat:@"webview_flutter: unknown setting keys: {%@}",
+                                    [unknownKeys componentsJoinedByString:@", "]];
 }
 
 - (void)updateJsMode:(NSNumber*)mode {
