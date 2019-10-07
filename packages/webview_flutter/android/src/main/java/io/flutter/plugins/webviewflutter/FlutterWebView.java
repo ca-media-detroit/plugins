@@ -6,6 +6,7 @@ package io.flutter.plugins.webviewflutter;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.Handler;
 import android.view.View;
@@ -29,14 +30,21 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   private final FlutterWebViewClient flutterWebViewClient;
   private final Handler platformThreadHandler;
 
+  @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
   @SuppressWarnings("unchecked")
   FlutterWebView(
-      Context context,
+      final Context context,
       BinaryMessenger messenger,
       int id,
       Map<String, Object> params,
       final View containerView) {
+
+    DisplayListenerProxy displayListenerProxy = new DisplayListenerProxy();
+    DisplayManager displayManager =
+        (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+    displayListenerProxy.onPreWebViewInitialization(displayManager);
     webView = new InputAwareWebView(context, containerView);
+    displayListenerProxy.onPostWebViewInitialization(displayManager);
 
     platformThreadHandler = new Handler(context.getMainLooper());
     // Allow local storage.
@@ -52,6 +60,11 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       registerJavaScriptChannelNames((List<String>) params.get(JS_CHANNEL_NAMES_FIELD));
     }
 
+    updateAutoMediaPlaybackPolicy((Integer) params.get("autoMediaPlaybackPolicy"));
+    if (params.containsKey("userAgent")) {
+      String userAgent = (String) params.get("userAgent");
+      updateUserAgent(userAgent);
+    }
     if (params.containsKey("initialUrl")) {
       String url = (String) params.get("initialUrl");
       webView.loadUrl(url);
@@ -124,6 +137,9 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         break;
       case "clearCache":
         clearCache(result);
+        break;
+      case "getTitle":
+        getTitle(result);
         break;
       default:
         result.notImplemented();
@@ -221,6 +237,10 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     result.success(null);
   }
 
+  private void getTitle(Result result) {
+    result.success(webView.getTitle());
+  }
+
   private void applySettings(Map<String, Object> settings) {
     for (String key : settings.keySet()) {
       switch (key) {
@@ -243,6 +263,9 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
           webView.setWebContentsDebuggingEnabled(debuggingEnabled);
           break;
+        case "userAgent":
+          updateUserAgent((String) settings.get(key));
+          break;
         default:
           throw new IllegalArgumentException("Unknown WebView setting: " + key);
       }
@@ -262,6 +285,13 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     }
   }
 
+  private void updateAutoMediaPlaybackPolicy(int mode) {
+    // This is the index of the AutoMediaPlaybackPolicy enum, index 1 is always_allow, for all
+    // other values we require a user gesture.
+    boolean requireUserGesture = mode != 1;
+    webView.getSettings().setMediaPlaybackRequiresUserGesture(requireUserGesture);
+  }
+
   private void registerJavaScriptChannelNames(List<String> channelNames) {
     for (String channelName : channelNames) {
       webView.addJavascriptInterface(
@@ -269,9 +299,14 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     }
   }
 
+  private void updateUserAgent(String userAgent) {
+    webView.getSettings().setUserAgentString(userAgent);
+  }
+
   @Override
   public void dispose() {
     methodChannel.setMethodCallHandler(null);
     webView.dispose();
+    webView.destroy();
   }
 }

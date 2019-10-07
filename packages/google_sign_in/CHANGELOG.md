@@ -1,3 +1,21 @@
+## 4.0.9
+
+* Update and migrate iOS example project.
+
+## 4.0.8
+
+* Get rid of `MethodCompleter` and serialize async actions using chained futures.
+  This prevents a bug when sign in methods are being used in error handling zones.
+
+## 4.0.7
+
+* Switch from using `api` to `implementation` for dependency on `play-services-auth`,
+  preventing version mismatch build failures in some Android configurations.
+
+## 4.0.6
+
+* Fixed the `PlatformException` leaking from `catchError()` in debug mode.
+
 ## 4.0.5
 
 * Update README with solution to `APIException` errors.
@@ -6,7 +24,7 @@
 
 * Revert changes in 4.0.3.
 
-## 4.0.3	
+## 4.0.3
 
 * Update guava to `27.0.1-android`.	
 * Add correct @NonNull annotations to reduce compiler warnings.	

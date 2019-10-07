@@ -1,4 +1,4 @@
-// Copyright 2019 The Chromium Authors. All rights reserved.
+// Copyright 2019 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import io.flutter.plugin.common.MethodCall;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ class ImagePickerCache {
   static final String MAP_KEY_PATH = "path";
   static final String MAP_KEY_MAX_WIDTH = "maxWidth";
   static final String MAP_KEY_MAX_HEIGHT = "maxHeight";
+  static final String MAP_KEY_IMAGE_QUALITY = "imageQuality";
   private static final String MAP_KEY_TYPE = "type";
   private static final String MAP_KEY_ERROR_CODE = "errorCode";
   private static final String MAP_KEY_ERROR_MESSAGE = "errorMessage";
@@ -26,12 +28,20 @@ class ImagePickerCache {
   private static final String SHARED_PREFERENCE_ERROR_CODE_KEY = "flutter_image_picker_error_code";
   private static final String SHARED_PREFERENCE_ERROR_MESSAGE_KEY =
       "flutter_image_picker_error_message";
+
   private static final String SHARED_PREFERENCE_MAX_WIDTH_KEY = "flutter_image_picker_max_width";
+
   private static final String SHARED_PREFERENCE_MAX_HEIGHT_KEY = "flutter_image_picker_max_height";
+
+  private static final String SHARED_PREFERENCE_IMAGE_QUALITY_KEY =
+      "flutter_image_picker_image_quality";
+
   private static final String SHARED_PREFERENCE_TYPE_KEY = "flutter_image_picker_type";
   private static final String SHARED_PREFERENCE_PENDING_IMAGE_URI_PATH_KEY =
       "flutter_image_picker_pending_image_uri";
-  private static final String SHARED_PREFERENCES_NAME = "flutter_image_picker_shared_preference";
+
+  @VisibleForTesting
+  static final String SHARED_PREFERENCES_NAME = "flutter_image_picker_shared_preference";
 
   private SharedPreferences prefs;
 
@@ -55,17 +65,26 @@ class ImagePickerCache {
   void saveDimensionWithMethodCall(MethodCall methodCall) {
     Double maxWidth = methodCall.argument(MAP_KEY_MAX_WIDTH);
     Double maxHeight = methodCall.argument(MAP_KEY_MAX_HEIGHT);
-    setMaxDimension(maxWidth, maxHeight);
+    int imageQuality =
+        methodCall.argument(MAP_KEY_IMAGE_QUALITY) == null
+            ? 100
+            : (int) methodCall.argument(MAP_KEY_IMAGE_QUALITY);
+
+    setMaxDimension(maxWidth, maxHeight, imageQuality);
   }
 
-  private void setMaxDimension(Double maxWidth, Double maxHeight) {
-
+  private void setMaxDimension(Double maxWidth, Double maxHeight, int imageQuality) {
     SharedPreferences.Editor editor = prefs.edit();
     if (maxWidth != null) {
       editor.putLong(SHARED_PREFERENCE_MAX_WIDTH_KEY, Double.doubleToRawLongBits(maxWidth));
     }
     if (maxHeight != null) {
       editor.putLong(SHARED_PREFERENCE_MAX_HEIGHT_KEY, Double.doubleToRawLongBits(maxHeight));
+    }
+    if (imageQuality > -1 && imageQuality < 101) {
+      editor.putInt(SHARED_PREFERENCE_IMAGE_QUALITY_KEY, imageQuality);
+    } else {
+      editor.putInt(SHARED_PREFERENCE_IMAGE_QUALITY_KEY, 100);
     }
     editor.apply();
   }
@@ -130,8 +149,14 @@ class ImagePickerCache {
         resultMap.put(MAP_KEY_MAX_WIDTH, Double.longBitsToDouble(maxWidthValue));
       }
       if (prefs.contains(SHARED_PREFERENCE_MAX_HEIGHT_KEY)) {
-        final long maxHeighValue = prefs.getLong(SHARED_PREFERENCE_MAX_HEIGHT_KEY, 0);
-        resultMap.put(MAP_KEY_MAX_HEIGHT, Double.longBitsToDouble(maxHeighValue));
+        final long maxHeightValue = prefs.getLong(SHARED_PREFERENCE_MAX_HEIGHT_KEY, 0);
+        resultMap.put(MAP_KEY_MAX_HEIGHT, Double.longBitsToDouble(maxHeightValue));
+      }
+      if (prefs.contains(SHARED_PREFERENCE_IMAGE_QUALITY_KEY)) {
+        final int imageQuality = prefs.getInt(SHARED_PREFERENCE_IMAGE_QUALITY_KEY, 100);
+        resultMap.put(MAP_KEY_IMAGE_QUALITY, imageQuality);
+      } else {
+        resultMap.put(MAP_KEY_IMAGE_QUALITY, 100);
       }
     }
 

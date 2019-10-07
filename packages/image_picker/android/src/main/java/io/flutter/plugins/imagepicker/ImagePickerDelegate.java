@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2019 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -217,7 +217,12 @@ public class ImagePickerDelegate
     if (path != null) {
       Double maxWidth = (Double) resultMap.get(cache.MAP_KEY_MAX_WIDTH);
       Double maxHeight = (Double) resultMap.get(cache.MAP_KEY_MAX_HEIGHT);
-      String newPath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight);
+      int imageQuality =
+          resultMap.get(cache.MAP_KEY_IMAGE_QUALITY) == null
+              ? 100
+              : (int) resultMap.get(cache.MAP_KEY_IMAGE_QUALITY);
+
+      String newPath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight, imageQuality);
       resultMap.put(cache.MAP_KEY_PATH, newPath);
     }
     if (resultMap.isEmpty()) {
@@ -516,12 +521,18 @@ public class ImagePickerDelegate
     if (methodCall != null) {
       Double maxWidth = methodCall.argument("maxWidth");
       Double maxHeight = methodCall.argument("maxHeight");
-      String finalImagePath = imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight);
+      int imageQuality =
+          methodCall.argument("imageQuality") == null
+              ? 100
+              : (int) methodCall.argument("imageQuality");
+
+      String finalImagePath =
+          imageResizer.resizeImageIfNeeded(path, maxWidth, maxHeight, imageQuality);
 
       finishWithSuccess(finalImagePath);
 
       //delete original file if scaled
-      if (!finalImagePath.equals(path) && shouldDeleteOriginalIfScaled) {
+      if (finalImagePath != null && !finalImagePath.equals(path) && shouldDeleteOriginalIfScaled) {
         new File(path).delete();
       }
     } else {
