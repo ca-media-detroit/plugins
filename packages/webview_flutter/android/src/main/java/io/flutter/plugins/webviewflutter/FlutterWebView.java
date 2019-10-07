@@ -120,9 +120,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       case "reload":
         reload(result);
         break;
-      case "userAgent":
-        userAgent(methodCall, result);
-        break;
       case "currentUrl":
         currentUrl(result);
         break;
@@ -189,10 +186,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     result.success(webView.getUrl());
   }
 
-  private void userAgent(MethodCall methodCall, Result result) {
-    result.success(webView.getSettings().getUserAgentString());
-  }
-
   @SuppressWarnings("unchecked")
   private void updateSettings(MethodCall methodCall, Result result) {
     applySettings((Map<String, Object>) methodCall.arguments);
@@ -254,9 +247,6 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
               flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
 
           webView.setWebViewClient(webViewClient);
-          break;
-        case "userAgent":
-          webView.getSettings().setUserAgentString((String) settings.get(key));
           break;
         case "debuggingEnabled":
           final boolean debuggingEnabled = (boolean) settings.get(key);

@@ -109,8 +109,6 @@
     [self onGoForward:call result:result];
   } else if ([[call method] isEqualToString:@"reload"]) {
     [self onReload:call result:result];
-  } else if ([[call method] isEqualToString:@"userAgent"]) {
-    [self userAgent:call result:result];
   } else if ([[call method] isEqualToString:@"currentUrl"]) {
     [self onCurrentUrl:call result:result];
   } else if ([[call method] isEqualToString:@"evaluateJavascript"]) {
@@ -171,15 +169,6 @@
 - (void)onReload:(FlutterMethodCall*)call result:(FlutterResult)result {
   [_webView reload];
   result(nil);
-}
-
-- (void)userAgent:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if (@available(iOS 9.0, *)) {
-    NSString* userAgent = [_webView customUserAgent];
-    result(userAgent);
-  } else {
-    result(nil);
-  }
 }
 
 - (void)onCurrentUrl:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -267,15 +256,6 @@
     } else if ([key isEqualToString:@"hasNavigationDelegate"]) {
       NSNumber* hasDartNavigationDelegate = settings[key];
       _navigationDelegate.hasDartNavigationDelegate = [hasDartNavigationDelegate boolValue];
-    } else if ([key isEqualToString:@"userAgent"]) {
-      id userAgent = settings[key];
-      if (userAgent && ![userAgent isEqual:[NSNull null]]) {
-        if (@available(iOS 9.0, *)) {
-            _webView.customUserAgent = userAgent;
-        } else {
-          NSLog(@"webview_flutter: prior to iOS 9.0, a custom userAgent is not supported.");
-        }
-      }
     } else if ([key isEqualToString:@"debuggingEnabled"]) {
       // no-op debugging is always enabled on iOS.
     } else if ([key isEqualToString:@"userAgent"]) {

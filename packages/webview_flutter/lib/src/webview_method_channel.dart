@@ -59,9 +59,6 @@ class MethodChannelWebViewPlatform implements WebViewPlatformController {
   Future<String> currentUrl() => _channel.invokeMethod<String>('currentUrl');
 
   @override
-  Future<String> userAgent() => _channel.invokeMethod('userAgent');
-
-  @override
   Future<bool> canGoBack() => _channel.invokeMethod<bool>("canGoBack");
 
   @override

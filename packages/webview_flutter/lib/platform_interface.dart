@@ -78,11 +78,6 @@ abstract class WebViewPlatformController {
         "WebView currentUrl is not implemented on the current platform");
   }
 
-  Future<String> userAgent() {
-    throw UnimplementedError(
-        "WebView userAgent is not implemented on the current platform");
-  }
-
   /// Checks whether there's a back history item.
   Future<bool> canGoBack() {
     throw UnimplementedError(
