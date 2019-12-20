@@ -20,17 +20,11 @@ import java.net.URLEncoder;
 import java.util.Map;
 
 class FlutterCookieManager implements MethodCallHandler {
+  private final MethodChannel methodChannel;
 
-  private FlutterCookieManager() {
-    // Do not instantiate.
-    // This class should only be used in context of a BinaryMessenger.
-    // Use FlutterCookieManager#registerWith instead.
-  }
-
-  static void registerWith(BinaryMessenger messenger) {
-    MethodChannel methodChannel = new MethodChannel(messenger, "plugins.flutter.io/cookie_manager");
-    FlutterCookieManager cookieManager = new FlutterCookieManager();
-    methodChannel.setMethodCallHandler(cookieManager);
+  FlutterCookieManager(BinaryMessenger messenger) {
+    methodChannel = new MethodChannel(messenger, "plugins.flutter.io/cookie_manager");
+    methodChannel.setMethodCallHandler(this);
   }
 
   @Override
@@ -45,6 +39,10 @@ class FlutterCookieManager implements MethodCallHandler {
       default:
         result.notImplemented();
     }
+  }
+
+  void dispose() {
+    methodChannel.setMethodCallHandler(null);
   }
 
   private static void clearCookies(final Result result) {
