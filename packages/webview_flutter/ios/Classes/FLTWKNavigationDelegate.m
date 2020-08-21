@@ -131,5 +131,5 @@
                        withError:(NSError *)error {
   [self onWebResourceError:error];
 }
->>>>>>> a9ac52f3fe10034ef7f48a98f9112bca0666d3e9
+
 @end
