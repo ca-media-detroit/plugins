@@ -426,6 +426,8 @@ class CreationParams {
   ///
   /// The `autoMediaPlaybackPolicy` parameter must not be null.
   CreationParams({
+    this.username,
+    this.password,
     this.initialUrl,
     this.webSettings,
     this.javascriptChannelNames,
@@ -443,6 +445,10 @@ class CreationParams {
   ///
   /// This can later be updated with [WebViewPlatformController.updateSettings].
   final WebSettings webSettings;
+
+  final String username;
+
+  final String password;
 
   /// The initial set of JavaScript channels that are configured for this webview.
   ///
@@ -518,5 +524,10 @@ abstract class WebViewPlatform {
   Future<bool> clearCookies() {
     throw UnimplementedError(
         "WebView clearCookies is not implemented on the current platform");
+  }
+
+  Future<void> addCookie(String url, String cookieString) {
+    throw UnimplementedError(
+        "WebView addCookie is not implemented on the current platform");
   }
 }

@@ -19,7 +19,10 @@
 - (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
   if ([[call method] isEqualToString:@"clearCookies"]) {
     [self clearCookies:result];
-  } else {
+  } else if ([[call method] isEqualToString:@"addCookie"]) {
+    // not implemented in iOS. Use loadUrl headers.
+    result(nil);
+  }else {
     result(FlutterMethodNotImplemented);
   }
 }

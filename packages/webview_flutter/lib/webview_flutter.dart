@@ -145,6 +145,8 @@ class WebView extends StatefulWidget {
     this.onWebViewCreated,
     this.initialUrl,
     this.javascriptMode = JavascriptMode.disabled,
+    this.username,
+    this.password,
     this.javascriptChannels,
     this.navigationDelegate,
     this.gestureRecognizers,
@@ -212,6 +214,12 @@ class WebView extends StatefulWidget {
 
   /// Whether Javascript execution is enabled.
   final JavascriptMode javascriptMode;
+
+  /// basic auth username
+  final String username;
+
+  /// basic auth password
+  final String password;
 
   /// The set of [JavascriptChannel]s available to JavaScript code running in the web view.
   ///
@@ -390,6 +398,8 @@ CreationParams _creationParamsfromWidget(WebView widget) {
   return CreationParams(
     initialUrl: widget.initialUrl,
     webSettings: _webSettingsFromWidget(widget),
+    username: widget.username,
+    password: widget.password,
     javascriptChannelNames: _extractChannelNames(widget.javascriptChannels),
     userAgent: widget.userAgent,
     autoMediaPlaybackPolicy: widget.initialMediaPlaybackPolicy,
@@ -723,6 +733,17 @@ class CookieManager {
   ///
   /// Returns true if cookies were present before clearing, else false.
   Future<bool> clearCookies() => WebView.platform.clearCookies();
+
+  /// Adds a cookie.
+  ///
+  /// This is supported for only Android.
+  /// Use headers with WebViewController.loadUrl method for set cookies in iOS.
+  Future<void> addCookie({
+    @required String url,
+    @required String cookieString,
+  }) {
+    return WebView.platform.addCookie(url, cookieString);
+  }
 }
 
 // Throws an ArgumentError if `url` is not a valid URL string.

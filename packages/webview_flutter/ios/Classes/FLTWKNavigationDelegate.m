@@ -6,12 +6,14 @@
 
 @implementation FLTWKNavigationDelegate {
   FlutterMethodChannel *_methodChannel;
+  id _Nullable _args;
 }
 
-- (instancetype)initWithChannel:(FlutterMethodChannel *)channel {
+- (instancetype)initWithChannel:(FlutterMethodChannel*)channel AndArgs:(id _Nullable)args {
   self = [super init];
   if (self) {
     _methodChannel = channel;
+    _args = args;
   }
   return self;
 }
@@ -66,6 +68,31 @@
   [_methodChannel invokeMethod:@"onPageFinished" arguments:@{@"url" : webView.URL.absoluteString}];
 }
 
+- (void)webView:(WKWebView *)webView didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler {
+  
+  NSString* username = _args[@"username"];
+  NSString* password = _args[@"password"];
+  
+  if ([username isKindOfClass:[NSString class]] && [password isKindOfClass:[NSString class]]) {
+    NSURLCredential *credential = [NSURLCredential credentialWithUser:(username)
+                                                             password:(password)
+                                                          persistence:NSURLCredentialPersistenceForSession];
+    completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+  } else {
+    completionHandler(NSURLSessionAuthChallengeUseCredential, nil);
+  }
+}
+
+
+- (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
+  
+  if (!navigationAction.targetFrame.isMainFrame) {
+    [webView loadRequest:navigationAction.request];
+  }
+  
+  return nil;
+}
+
 + (id)errorCodeToString:(NSUInteger)code {
   switch (code) {
     case WKErrorUnknown:
@@ -104,4 +131,5 @@
                        withError:(NSError *)error {
   [self onWebResourceError:error];
 }
+
 @end

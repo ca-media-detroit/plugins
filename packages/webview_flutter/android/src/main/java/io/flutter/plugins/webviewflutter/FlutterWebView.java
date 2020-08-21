@@ -10,6 +10,7 @@ import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.Handler;
 import android.view.View;
+import android.webkit.HttpAuthHandler;
 import android.webkit.WebStorage;
 import android.webkit.WebViewClient;
 import io.flutter.plugin.common.BinaryMessenger;
@@ -53,7 +54,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     methodChannel = new MethodChannel(messenger, "plugins.flutter.io/webview_" + id);
     methodChannel.setMethodCallHandler(this);
 
-    flutterWebViewClient = new FlutterWebViewClient(methodChannel);
+    flutterWebViewClient = new FlutterWebViewClient(methodChannel, params);
     applySettings((Map<String, Object>) params.get("settings"));
 
     if (params.containsKey(JS_CHANNEL_NAMES_FIELD)) {

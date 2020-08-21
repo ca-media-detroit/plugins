@@ -160,6 +160,17 @@ class MethodChannelWebViewPlatform implements WebViewPlatformController {
         .then<bool>((dynamic result) => result);
   }
 
+  static Future<void> addCookie(String url, String cookieString) {
+    assert(cookieString != null);
+    return _cookieManagerChannel.invokeMethod(
+      'addCookie',
+      <String, dynamic>{
+        'url': url,
+        'cookieString': cookieString,
+      },
+    );
+  }
+
   static Map<String, dynamic> _webSettingsToMap(WebSettings settings) {
     final Map<String, dynamic> map = <String, dynamic>{};
     void _addIfNonNull(String key, dynamic value) {
@@ -192,6 +203,8 @@ class MethodChannelWebViewPlatform implements WebViewPlatformController {
   static Map<String, dynamic> creationParamsToMap(
       CreationParams creationParams) {
     return <String, dynamic>{
+      'username': creationParams.username,
+      'password': creationParams.password,
       'initialUrl': creationParams.initialUrl,
       'settings': _webSettingsToMap(creationParams.webSettings),
       'javascriptChannelNames': creationParams.javascriptChannelNames.toList(),

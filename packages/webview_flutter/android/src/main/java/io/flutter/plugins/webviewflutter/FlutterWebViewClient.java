@@ -9,6 +9,7 @@ import android.annotation.TargetApi;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.util.Log;
+import android.webkit.HttpAuthHandler;
 import android.view.KeyEvent;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -29,10 +30,19 @@ import java.util.Map;
 class FlutterWebViewClient {
   private static final String TAG = "FlutterWebViewClient";
   private final MethodChannel methodChannel;
+  private final Map<String, Object> params;
   private boolean hasNavigationDelegate;
 
-  FlutterWebViewClient(MethodChannel methodChannel) {
+  FlutterWebViewClient(MethodChannel methodChannel, Map<String, Object> params) {
     this.methodChannel = methodChannel;
+    this.params = params;
+  }
+
+  private void onReceivedHttpAuthRequest(
+          WebView view, HttpAuthHandler handler, String host, String realm) {
+    if (params.containsKey("username") && params.containsKey("password")) {
+      handler.proceed((String) params.get("username"), (String) params.get("password"));
+    }
   }
 
   private static String errorCodeToString(int errorCode) {
@@ -163,6 +173,11 @@ class FlutterWebViewClient {
 
   private WebViewClient internalCreateWebViewClient() {
     return new WebViewClient() {
+      @Override
+      public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+        FlutterWebViewClient.this.onReceivedHttpAuthRequest(view, handler, host, realm);
+      }
+
       @TargetApi(Build.VERSION_CODES.N)
       @Override
       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {

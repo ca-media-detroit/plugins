@@ -14,6 +14,11 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Map;
+
 class FlutterCookieManager implements MethodCallHandler {
   private final MethodChannel methodChannel;
 
@@ -27,6 +32,9 @@ class FlutterCookieManager implements MethodCallHandler {
     switch (methodCall.method) {
       case "clearCookies":
         clearCookies(result);
+        break;
+      case "addCookie":
+        addCookie(methodCall, result);
         break;
       default:
         result.notImplemented();
@@ -52,5 +60,14 @@ class FlutterCookieManager implements MethodCallHandler {
       cookieManager.removeAllCookie();
       result.success(hasCookies);
     }
+  }
+
+  private static void addCookie(final MethodCall methodCall, final Result result) {
+    final String url = methodCall.argument("url");
+    final String cookieString = methodCall.argument("cookieString");
+
+    CookieManager cookieManager = CookieManager.getInstance();
+    cookieManager.setCookie(url, cookieString);
+    result.success(null);
   }
 }
